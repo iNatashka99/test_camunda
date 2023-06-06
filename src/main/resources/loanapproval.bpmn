@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_0821pf9" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.11.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.19.0">
+  <bpmn:collaboration id="Collaboration_19r8wv7">
+    <bpmn:extensionElements />
+    <bpmn:participant id="Participant_00rk2c6" processRef="loan_approval-process" />
+  </bpmn:collaboration>
+  <bpmn:process id="loan_approval-process" isExecutable="true" camunda:historyTimeToLive="P45D">
+    <bpmn:laneSet id="LaneSet_0cfnvqi">
+      <bpmn:lane id="Lane_007k1tn" name="Люди">
+        <bpmn:flowNodeRef>StartEvent_1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Experts_desision</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_0s0y1sb" name="Система">
+        <bpmn:extensionElements />
+        <bpmn:flowNodeRef>Preliminary_check</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Response</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_1jc73co</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_13mw5vh</bpmn:flowNodeRef>
+        <bpmn:childLaneSet id="LaneSet_02b79y7" />
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:sequenceFlow id="Flow_02hkmx2" name="scoring good" sourceRef="Gateway_13mw5vh" targetRef="Experts_desision">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${scoring_good == true}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_1ugfq4b" sourceRef="Experts_desision" targetRef="Response" />
+    <bpmn:startEvent id="StartEvent_1" camunda:candidateGroups="simpleusers">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="name" label="Имя" type="string">
+            <camunda:properties>
+              <camunda:property id="pattern" value="^[\u0400-\u04FF]+$" />
+            </camunda:properties>
+            <camunda:validation>
+              <camunda:constraint name="maxlength" config="16" />
+              <camunda:constraint name="minlength" config="2" />
+            </camunda:validation>
+          </camunda:formField>
+          <camunda:formField id="surname" label="Фамилия" type="string">
+            <camunda:properties>
+              <camunda:property id="pattern" value="^[\u0400-\u04FF]+$" />
+            </camunda:properties>
+            <camunda:validation>
+              <camunda:constraint name="maxlength" config="16" />
+              <camunda:constraint name="minlength" config="2" />
+            </camunda:validation>
+          </camunda:formField>
+          <camunda:formField id="pasport" label="Паспорт" type="string">
+            <camunda:properties />
+            <camunda:validation>
+              <camunda:constraint name="maxlength" config="6" />
+              <camunda:constraint name="minlength" config="6" />
+            </camunda:validation>
+          </camunda:formField>
+          <camunda:formField id="salary" label="Заработная плата" type="long" defaultValue="0">
+            <camunda:validation>
+              <camunda:constraint name="min" config="0" />
+            </camunda:validation>
+          </camunda:formField>
+          <camunda:formField id="age" label="Возраст" type="long">
+            <camunda:validation>
+              <camunda:constraint name="min" config="14" />
+            </camunda:validation>
+          </camunda:formField>
+          <camunda:formField id="rf" label="Гражданство РФ" type="boolean" />
+        </camunda:formData>
+      </bpmn:extensionElements>
+      <bpmn:outgoing>Flow_177z2yj</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_177z2yj" sourceRef="StartEvent_1" targetRef="Preliminary_check" />
+    <bpmn:serviceTask id="Preliminary_check" name="Предварительная проверка" camunda:class="com.example.workflow.loanapp.Scoring">
+      <bpmn:extensionElements />
+      <bpmn:incoming>Flow_177z2yj</bpmn:incoming>
+      <bpmn:outgoing>Flow_14zrrfq</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Response" name="Ответ" camunda:class="com.example.workflow.loanapp.Response">
+      <bpmn:incoming>Flow_1ugfq4b</bpmn:incoming>
+      <bpmn:incoming>Flow_1xnugkb</bpmn:incoming>
+      <bpmn:outgoing>Flow_0xp3jom</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_0xp3jom" sourceRef="Response" targetRef="Event_1jc73co" />
+    <bpmn:endEvent id="Event_1jc73co">
+      <bpmn:incoming>Flow_0xp3jom</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:userTask id="Experts_desision" name="Мнение эксперта">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="accept" label="Решение" type="boolean" />
+          <camunda:formField id="scoring_good" label="Проверка системы" type="boolean">
+            <camunda:properties />
+            <camunda:validation>
+              <camunda:constraint name="readonly" config="1" />
+            </camunda:validation>
+          </camunda:formField>
+        </camunda:formData>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_02hkmx2</bpmn:incoming>
+      <bpmn:outgoing>Flow_1ugfq4b</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_13mw5vh">
+      <bpmn:incoming>Flow_14zrrfq</bpmn:incoming>
+      <bpmn:outgoing>Flow_02hkmx2</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1xnugkb</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_14zrrfq" sourceRef="Preliminary_check" targetRef="Gateway_13mw5vh" />
+    <bpmn:sequenceFlow id="Flow_1xnugkb" name="scoring bad" sourceRef="Gateway_13mw5vh" targetRef="Response">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${scoring_good == false}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_19r8wv7">
+      <bpmndi:BPMNShape id="Participant_00rk2c6_di" bpmnElement="Participant_00rk2c6" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="870" height="320" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_0s0y1sb_di" bpmnElement="Lane_0s0y1sb" isHorizontal="true">
+        <dc:Bounds x="190" y="240" width="840" height="160" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_007k1tn_di" bpmnElement="Lane_007k1tn" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="840" height="160" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+        <dc:Bounds x="222" y="162" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_169dc80_di" bpmnElement="Preliminary_check">
+        <dc:Bounds x="320" y="280" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_1j3zfdj" bpmnElement="Response">
+        <dc:Bounds x="740" y="280" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1jc73co_di" bpmnElement="Event_1jc73co">
+        <dc:Bounds x="932" y="302" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1g5r4z4_di" bpmnElement="Experts_desision">
+        <dc:Bounds x="550" y="140" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_13mw5vh_di" bpmnElement="Gateway_13mw5vh" isMarkerVisible="true">
+        <dc:Bounds x="555" y="295" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_02hkmx2_di" bpmnElement="Flow_02hkmx2">
+        <di:waypoint x="580" y="295" />
+        <di:waypoint x="580" y="220" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="508" y="255" width="64" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1ugfq4b_di" bpmnElement="Flow_1ugfq4b">
+        <di:waypoint x="650" y="180" />
+        <di:waypoint x="790" y="180" />
+        <di:waypoint x="790" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_177z2yj_di" bpmnElement="Flow_177z2yj">
+        <di:waypoint x="258" y="180" />
+        <di:waypoint x="370" y="180" />
+        <di:waypoint x="370" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0xp3jom_di" bpmnElement="Flow_0xp3jom">
+        <di:waypoint x="840" y="320" />
+        <di:waypoint x="932" y="320" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_14zrrfq_di" bpmnElement="Flow_14zrrfq">
+        <di:waypoint x="420" y="320" />
+        <di:waypoint x="555" y="320" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1xnugkb_di" bpmnElement="Flow_1xnugkb">
+        <di:waypoint x="605" y="320" />
+        <di:waypoint x="740" y="320" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="644" y="302" width="58" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
