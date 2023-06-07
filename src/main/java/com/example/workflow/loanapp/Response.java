@@ -1,6 +1,5 @@
 package com.example.workflow.loanapp;
 
-import com.example.workflow.Notification;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
 
